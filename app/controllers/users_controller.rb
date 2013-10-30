@@ -1,10 +1,19 @@
 class UsersController < ApplicationController
-  def new
-    @user = User.new
+  # forces users to be signed in iff edit and update action.
+  before_action :signed_in_user, only: [:index, :edit, :update, :destroy]
+  before_action :correct_user, only: [:edit, :update] # checks if user eq. to current_user
+  before_action :admin_user,     only: :destroy
+
+  def index
+    @users = User.paginate(page: params[:page])
   end
 
   def show
     @user = User.find(params[:id])
+  end
+
+  def new
+    @user = User.new
   end
 
   def create
@@ -20,11 +29,47 @@ class UsersController < ApplicationController
     end
   end
 
+  def edit
+  end
+
+  def update
+    if @user.update_attributes(user_params)
+      flash[:success] = "Profile updated"
+      redirect_to @user
+    else
+      render 'edit'
+    end
+  end
+
+  def destroy
+    User.find(params[:id]).destroy
+    flash[:success] = "User deleted."
+    redirect_to users_url
+  end
+
   private
 
   def user_params
     params.require(:user).permit(:name, :email, :password,
                                  :password_confirmation)
+  end
+
+  # Before filters
+
+  def signed_in_user
+    store_location # This call will store the path in case the user is not authenticated to allow a redirect later.
+                   #If the user is not signed in, take them to the signin page.
+    redirect_to signin_url, notice: "Please sign in." unless signed_in?
+  end
+
+  def correct_user
+    @user = User.find(params[:id]) # This is the user they are requesting to update.
+    redirect_to(root_url) unless current_user?(@user) # Check this against who is currently signed in.
+  end
+
+  def admin_user
+    # Need to check if current_user is user being deleted. Do not allow.
+    redirect_to(root_url) unless current_user.admin?
   end
 
 end
