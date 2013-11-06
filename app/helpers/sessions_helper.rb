@@ -23,6 +23,14 @@ module SessionsHelper
     user == current_user
   end
 
+  def signed_in_user
+    unless signed_in?
+      store_location # This call will store the path in case the user is not authenticated to allow a redirect later.
+                     #If the user is not signed in, take them to the signin page.
+      redirect_to signin_url, notice: "Please sign in." unless signed_in?
+    end
+  end
+
   def sign_out
     self.current_user = nil
     cookies.delete(:remember_token)
@@ -36,4 +44,6 @@ module SessionsHelper
   def store_location
     session[:return_to] = request.url if request.get?
   end
+
+
 end

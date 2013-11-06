@@ -10,6 +10,7 @@ class UsersController < ApplicationController
 
   def show
     @user = User.find(params[:id])
+    @microposts = @user.microposts.paginate(page: params[:page])
   end
 
   def new
@@ -71,12 +72,6 @@ class UsersController < ApplicationController
   end
 
   # Before filters
-
-  def signed_in_user
-    store_location # This call will store the path in case the user is not authenticated to allow a redirect later.
-                   #If the user is not signed in, take them to the signin page.
-    redirect_to signin_url, notice: "Please sign in." unless signed_in?
-  end
 
   def correct_user
     @user = User.find(params[:id]) # This is the user they are requesting to update.
