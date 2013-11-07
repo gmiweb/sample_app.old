@@ -1,5 +1,5 @@
-<!--This object is being passed using the render params.-->
 <% if object.errors.any? %>
+    <!--This error object is being passed using the render params.-->
     <div id="error_explanation">
       <div class="alert alert-error">
         The form contains <%= pluralize(object.errors.count, "error") %>.

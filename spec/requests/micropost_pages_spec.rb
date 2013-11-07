@@ -23,16 +23,21 @@ describe "Micropost pages" do
     end
 
     describe "with valid information" do
+      it { should have_content('0 microposts') }
 
-      before { fill_in 'micropost_content', with: "Lorem ipsum" }
-      it "should create a micropost" do
-        expect { click_button "Post" }.to change(Micropost, :count).by(1)
+      before { fill_in 'micropost_content', with: 'Lorem ipsum' }
+      it 'should create a micropost' do
+        expect { click_button 'Post' }.to change(Micropost, :count).by(1)
+        should have_content('1 micropost')
       end
+
     end
   end
 
+
   describe "micropost destruction" do
     before { FactoryGirl.create(:micropost, user: user) }
+    let(:other_user) { FactoryGirl.create(:user) }
 
     describe "as correct user" do
       before { visit root_path }
@@ -40,6 +45,11 @@ describe "Micropost pages" do
       it "should delete a micropost" do
         expect { click_link "delete" }.to change(Micropost, :count).by(-1)
       end
+    end
+
+    describe "as viewing other user posts" do
+      before { visit user_path other_user }
+      it { should_not have_link('delete', href: microposts_path(user.feed)) }
     end
   end
 end
