@@ -1,5 +1,17 @@
 class User < ActiveRecord::Base
+  # ******* DB STUFF *********************
   has_many :microposts, dependent: :destroy
+  has_many :relationships, foreign_key: "follower_id", dependent: :destroy
+  # source: tells rails to look for followed_id in table relationships.
+  # otherwise followed_user_id is not in table and it will error.
+  has_many :followed_users, through: :relationships, source: :followed
+  has_many :reverse_relationships, foreign_key: "followed_id",
+           class_name:  "Relationship",
+           dependent:   :destroy
+  # source: here is not needed because followers singular follower_id is in table.
+  has_many :followers, through: :reverse_relationships
+
+  # ****** VALIDATION AND HOOKS *****************
   # Make sure to force lower case emails.
   has_secure_password
   before_save { email.downcase! }
@@ -26,7 +38,21 @@ class User < ActiveRecord::Base
     # Could just return the microposts variable here, but this code generalizes
     # much more naturally to the full status feed needed in Chapter 11
     # This is preliminary. See "Following users" for the full implementation.
-    Micropost.where("user_id = ?", id)
+    #Micropost.where("user_id = ?", id)
+    Micropost.from_users_followed_by(self) # This is the filter of combined microposts
+  end
+
+  def following?(other_user)
+    relationships.find_by(followed_id: other_user.id)
+  end
+
+  # The bang (!) enforces an exception can be thrown.
+  def follow!(other_user)
+    relationships.create!(followed_id: other_user.id)
+  end
+
+  def unfollow!(other_user)
+    relationships.find_by(followed_id: other_user.id).destroy!
   end
 
   private

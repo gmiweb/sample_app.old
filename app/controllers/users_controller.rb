@@ -1,8 +1,9 @@
 class UsersController < ApplicationController
   # forces users to be signed in iff edit and update action.
-  before_action :signed_in_user, only: [:index, :edit, :update, :destroy]
+  before_action :signed_in_user, only: [:index, :edit, :update, :destroy,
+                                        :followers, :following]
   before_action :correct_user, only: [:edit, :update] # checks if user eq. to current_user
-  before_action :admin_user,     only: :destroy
+  before_action :admin_user, only: :destroy
 
   def index
     @users = User.paginate(page: params[:page])
@@ -25,7 +26,7 @@ class UsersController < ApplicationController
   def create
     # Do not let a signed in user create another user.
     if signed_in?
-       redirect_to root_url
+      redirect_to root_url
     end
 
     @user = User.new(user_params)
@@ -55,13 +56,27 @@ class UsersController < ApplicationController
   def destroy
     user = User.find(params[:id])
     #current_user is already an admin otherwise he would not make it to this point.
-    if current_user !=  user
+    if current_user != user
       user.destroy
       flash[:success] = "User deleted."
       redirect_to users_url
     else
       redirect_to(root_url)
     end
+  end
+
+  def following
+    @title = "Following"
+    @user = User.find(params[:id])
+    @users = @user.followed_users.paginate(page: params[:page])
+    render 'show_follow'
+  end
+
+  def followers
+    @title = "Followers"
+    @user = User.find(params[:id])
+    @users = @user.followers.paginate(page: params[:page])
+    render 'show_follow'
   end
 
   private
