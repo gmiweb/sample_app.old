@@ -16,6 +16,7 @@ class User < ActiveRecord::Base
   has_secure_password
   before_save { email.downcase! }
   before_create :create_remember_token
+  validates :username, presence: true, length: {maximum: 50}, uniqueness: {case_sensitive: false}
   validates :name, presence: true, length: {maximum: 50}
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z/i
   # email is not case sensitive and requires it to be unique. However there is an added database

@@ -1,0 +1,12 @@
+var micropostCounter;
+
+micropostCounter = function() {
+    var lbl, micropost, used;
+    micropost = $('#micropost_content');
+    used = micropost.val().length;
+    lbl = $('#chars_remaining');
+    return lbl.text(140 - used + " characters remaining.");
+};
+$(document).ready(function(){
+    $('#micropost_content').on('keyup', micropostCounter);
+});
