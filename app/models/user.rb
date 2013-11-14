@@ -17,7 +17,7 @@ class User < ActiveRecord::Base
   before_save { email.downcase! }
   before_create { generate_token :remember_token }
 
-  VALID_USERNAME_REGEX = /\A@(\w+)/
+  VALID_USERNAME_REGEX = /\A(\w+)/
   validates :username, presence: true,
             length: {maximum: 50},
             uniqueness: {case_sensitive: false},
