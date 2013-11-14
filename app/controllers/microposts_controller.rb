@@ -3,7 +3,13 @@ class MicropostsController < ApplicationController
   before_action :correct_user,   only: :destroy
 
   def create
+    #Get the content and check if @ exists at begining. If it does, then lookup username
+    #set in_reply_to user id and save post.
     @micropost = current_user.microposts.build(micropost_params)
+    if username = @micropost.content[/\A@(\w+)/] # in reply to...
+      reply_to_user = User.find_by_username username.sub '@', ''
+       @micropost.in_reply_to = reply_to_user ? reply_to_user.id : nil
+    end
     if @micropost.save
       flash[:success] = "Micropost created!"
       redirect_to root_url
