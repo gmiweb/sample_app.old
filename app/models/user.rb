@@ -15,7 +15,7 @@ class User < ActiveRecord::Base
   # Make sure to force lower case emails.
   has_secure_password
   before_save { email.downcase! }
-  before_create :create_remember_token
+  before_create { generate_token :remember_token }
 
   VALID_USERNAME_REGEX = /\A@(\w+)/
   validates :username, presence: true,
@@ -33,12 +33,19 @@ class User < ActiveRecord::Base
             uniqueness: {case_sensitive: false}
   validates :password, length: {minimum: 6}
 
-  def User.new_remember_token
-    SecureRandom.urlsafe_base64
-  end
+  #def User.new_remember_token
+  #  SecureRandom.urlsafe_base64
+  #end
 
   def User.encrypt(token)
     Digest::SHA1.hexdigest(token.to_s)
+  end
+
+  def send_password_reset
+    generate_token(:password_reset_token)
+    self.password_reset_at = Time.zone.now
+    self.save(:validate => false)
+    UserMailer.password_reset(self).deliver
   end
 
   def feed
@@ -64,7 +71,10 @@ class User < ActiveRecord::Base
 
   private
 
-  def create_remember_token
-    self.remember_token = User.encrypt(User.new_remember_token)
+  def generate_token(column)
+    begin
+       self[column] = SecureRandom.urlsafe_base64
+    end while User.exists?(column => self[column])
   end
+
 end

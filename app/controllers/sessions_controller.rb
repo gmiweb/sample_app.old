@@ -6,7 +6,7 @@ class SessionsController < ApplicationController
   def create
     user = User.find_by(username: params[:session][:username])
     if user && user.authenticate(params[:session][:password])
-      sign_in user    # Calling sign_in method from sessions_helper.rb
+      sign_in user, params[:session][:remember_me]    # Calling sign_in method from sessions_helper.rb
       redirect_back_or user  # Calling method from sessions_helper
     else
       flash.now[:error] = 'Invalid email/password combination'
